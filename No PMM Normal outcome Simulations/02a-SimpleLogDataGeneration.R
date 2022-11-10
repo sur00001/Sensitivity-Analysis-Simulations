@@ -3,15 +3,11 @@
 ###################################################################################
 library(dplyr); library(truncnorm)
 library(MASS);library(AER); library(pscl)
-setwd("~/Sensitivity Analysis - Paper 1/Delta-adjusted-sensitivity-analysis")
-#load("~/Sensitivity Analysis - Paper 1/completedat4pred_6-11.rda")
-load("C:/Users/lylae/OneDrive/Documents/Sensitivity Analysis - Paper 1/completedat4pred_lognormbinge.rda")
-#load("~/Sensitivity Analysis - Paper 1/Delta-adjusted-sensitivity-analysis/NULLmbridgesim.ZPmodels.rda")
+source("03a-SimpleLogInduceMissingness.R") #functions to induce missingness called 
+setwd("~/Sensitivity Analysis - Paper 1/Sensitivity-Analysis-Simulations/No PMM Normal outcome Simulations")
+load("C:/Users/lylae/OneDrive/Documents/Sensitivity Analysis - Paper 1/Sensitivity-Analysis-Simulations/completedat4pred_lognormbinge.rda")
 #load("~/Sensitivity Analysis - Paper 1/Delta-adjusted-sensitivity-analysis/mbridgesim.ZPmodels.rda")
-source("03a-SimpleLogInduceMissingness.R")
-#source("01-Simulation_Models.R")
-#source("01a-SimpleLogSimulations_Models.R")
-load("~/Sensitivity Analysis - Paper 1/Delta-adjusted-sensitivity-analysis/mbridgeSimplesim.logbinge.Normmodels.rda")
+load("C:/Users/lylae/OneDrive/Documents/Sensitivity Analysis - Paper 1/Sensitivity-Analysis-Simulations/NULLSimplesim.NormalOutcome.models.rda") #NULL simulation models 
 set.seed(1996)
 
 # Expit Function 
@@ -19,10 +15,6 @@ expit=function(x){
   exp(x)/(1+exp(x))
 }
 
-# # #Generate quasipoisson data - this is incorrect; parameterized it wrong
-# rqpois <- function(n, mu, theta) {
-# rnbinom(n = n, mu = mu, size = mu/(theta-1))
-# }
 
 # Simulating data function
 gen.data <- function(N,missTV, missY,missprob,monotone.mis=0,rep.no){
@@ -66,7 +58,7 @@ gen.data <- function(N,missTV, missY,missprob,monotone.mis=0,rep.no){
   logsmbinge.mean = predict(logsmbinge.mod,newdata=simdat)
   simdat$logsm_binge_last = rnorm(logsmbinge.mean,sigma(logsmbinge.mod))
   
-  fulldat1 = simdat 
+ 
   ############################ Induce missingness ###########################
   if (missTV!="none"){
     alpha_m = logit(missprob-.02)
@@ -147,22 +139,6 @@ gen.data <- function(N,missTV, missY,missprob,monotone.mis=0,rep.no){
       simdat$hs_util2 = induce.missYt(nperson=N,t=2,simdat$hs_util2,wide.df=fulldat,miss_type=missY,
                                       alpha_m= logit(missprob-.02),  beta_y= .3, beta_a1 = 1, beta_a2 = 1,
                                       beta_maxd = 0,beta_hs = 0,beta_by=0,beta_hd = 0,beta_a1logbinge2 = .01,beta_a2logbinge2 = .01, miss_prob=missprob)
-      # 
-      # simdat$max_drinks1 = induce.missYt(nperson=N,t=1,simdat$max_drinks1,wide.df=fulldat,miss_type=missY,
-      #                                    alpha_m= logit(missprob-.02),  beta_y= .3, beta_a1 = 1, beta_a2 = 1,
-      #                                    beta_maxd = 0,beta_hs = 0,beta_by=0,beta_hd = 0,beta_a1logbinge2 = .01,beta_a2logbinge2 = .01,miss_prob=missprob) 
-      # 
-      # simdat$max_drinks2 = induce.missYt(nperson=N,t=2,simdat$max_drinks2,wide.df=fulldat,miss_type=missY,
-      #                                    alpha_m= logit(missprob-.02),  beta_y= .3, beta_a1 = 1, beta_a2 = 1,
-      #                                    beta_maxd = 0,beta_hs = 0,beta_by=0,beta_hd = 0, beta_a1logbinge2 = .01,beta_a2logbinge2 = .01, miss_prob=missprob) 
-      # 
-      # simdat$byaacq1 = induce.missYt(nperson=N,t=1,simdat$byaacq1,wide.df=fulldat,miss_type=missY,
-      #                                alpha_m= logit(missprob-.02),  beta_y= .3, beta_a1 = 1, beta_a2 = 1,
-      #                                beta_maxd = 0,beta_hs = 0,beta_by=0,beta_hd = 0, beta_a1logbinge2 = .01,beta_a2logbinge2 = .01, miss_prob=missprob) 
-      # 
-      # simdat$byaacq2 = induce.missYt(nperson=N,t=2,simdat$byaacq2,wide.df=fulldat,miss_type=missY,
-      #                                alpha_m= logit(missprob-.02),  beta_y= .3, beta_a1 = 1, beta_a2 = 1,
-      #                                beta_maxd = 0,beta_hs = 0,beta_by=0,beta_hd = 0, beta_a1logbinge2 = .01,beta_a2logbinge2 = .01, miss_prob=missprob) 
     }
     
   }
@@ -170,24 +146,3 @@ gen.data <- function(N,missTV, missY,missprob,monotone.mis=0,rep.no){
   return(simdat)
 }
 
-#Change model coefficients for A1 and A2 in the binge drinking models to run an alternative case 
-
-# # Saving the missingness parameters for scenarios
-# mis.betas = data.frame(miss_type="MNAR", miss_prob =.528,yt=.5,monotone=0,alpha_m=0, beta_y=0, beta_by=0,beta_hs=0,
-#                                             beta_maxd=0L,beta_a1 = .1,beta_f = 0,
-#                                            beta_hd=0,beta_a2=0,beta_a2binge2= 0,
-#                                             beta_a1binge2=0,beta_smb=.1,beta_smh=.01,beta_a1smb=.1)
-# save(mis.betas,file="missingScenarioBetas.rda")
-
-# simdat$sm_binge_last = induce.missYt(N,t=.5,simdat$sm_binge_last,simdat,miss_type="MNAR",alpha_m=0,beta_a1 = 1,beta_smb=1,beta_smh=1,beta_a1smb=2) #~50% missingness
-
-# simdat$sm_binge_last = induce.missYt(N,t=.5,alpha_m=alpha_ms, beta_y=beta_ys, beta_by=beta_bys,beta_hs=beta_hss,
-#                                      beta_maxd=beta_maxds,beta_a1 = beta_a1s,beta_f = beta_fs,
-#                                      beta_hd=beta_hds,beta_a2=beta_a2s,beta_a2binge2= beta_a2binge2s,
-#                                      beta_a1binge2=beta_a1binge2s,beta_smb=beta_smbs,beta_smh=beta_smhs,beta_a1smb=beta_a1smbs,
-#                                      miss_type=missTV, miss_prob =miss_prob)
-
-
-# simdat$sm_binge_last = induce.missYt(N,yt=simdat$sm_binge_last,wide.df = simdat,t=.5,alpha_m=-alpha_m, beta_y=beta_y, beta_by=beta_by,beta_hs=beta_hs,
-#                                      beta_maxd=beta_maxd,beta_a1 = beta_a1,beta_f = beta_f,beta_a2=beta_a2,
-#                                      miss_type=missTV,miss_prob = missprob)

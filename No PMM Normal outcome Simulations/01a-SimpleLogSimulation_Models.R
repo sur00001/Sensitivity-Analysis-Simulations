@@ -11,7 +11,7 @@ library(pscl)
 
 #Open complete data 
 load("C:/Users/lylae/OneDrive/Documents/Sensitivity Analysis - Paper 1/completedat4pred_lognormbinge.rda")
-setwd("~/Sensitivity Analysis - Paper 1/Delta-adjusted-sensitivity-analysis")
+setwd("~/Sensitivity Analysis - Paper 1/Sensitivity-Analysis-Simulations/No PMM Normal outcome Simulations")
    
 #Group variables into vectors 
 dems = c("female","nonwhite","greekintent")
@@ -23,7 +23,7 @@ dems = c("female","nonwhite","greekintent")
 #################################################################################################
 
 #Creating log variables - now saved to completedat4pred_lognormbinge.rda file
-# 
+
 # cdat$logbinge0 = log(cdat$binge0); cdat$logbinge0[cdat$binge0==0] = log(runif(sum(cdat$binge0==0),0,1))
 # cdat$logbinge1 = log(cdat$binge1); cdat$logbinge1[cdat$binge1==0] = log(runif(sum(cdat$binge1==0),0,1))
 # cdat$logbinge2 = log(cdat$binge2); cdat$logbinge2[cdat$binge2==0] = log(runif(sum(cdat$binge2==0),0,1))
@@ -67,7 +67,7 @@ logsmbinge.mod = lm(logsmbinge.form,data=cdat); summary(logsmbinge.mod)
 logsmbinge.mod$coefficients[7] = 0
 
 
-#cdat$logHD = ifelse(cdat$logsm_binge_last<log(3) | is.na(cdat$logsm_binge_last), 0,1)
+cdat$logHD = ifelse(cdat$logsm_binge_last<log(3) | is.na(cdat$logsm_binge_last), 0,1)
 
 
 ########################### Follow-up 1 outcomes ##########################################

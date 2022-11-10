@@ -31,9 +31,6 @@ induce.missYt = function(nperson,t,yt,wide.df,alpha_m=NULL, beta_y=NULL, beta_by
     } else # follow-up times
       yt.missprob = expit(alpha_m+
                             beta_y*(wide.df$logbinge0-mean(wide.df$logbinge0))*(t==1)+
-                       
-                            #beta_hs*(wide.df$hs_util0-mean(wide.df$hs.util0))+
-                       
                             beta_a1*(wide.df$A1-mean(wide.df$A1))+
                             beta_a2*(wide.df$A2-mean(wide.df$A2))+ 
                             beta_hd*(wide.df$logHD-mean(wide.df$logHD)))
@@ -42,9 +39,9 @@ induce.missYt = function(nperson,t,yt,wide.df,alpha_m=NULL, beta_y=NULL, beta_by
   }
   if(miss_type=="MNAR"){ 
     if (t<1){ #tailoring variable 
-      yt.missprob = expit(alpha_m+(beta_y/2)*(wide.df$sm_logbinge_last-mean(wide.df$sm_logbinge_last))+
+      yt.missprob = expit(alpha_m+(beta_y/2)*(wide.df$logsm_binge_last-mean(wide.df$logsm_binge_last))+
                             #beta_smh*(wide.df$sm_hid_last)+ 
-                            beta_a1*(wide.df$A1-mean(wide.df$A1)) + beta_a1smb*((wide.df$A1-mean(wide.df$A1))*(wide.df$sm_logbinge_last-mean(wide.df$sm_logbinge_last)))) #interaction with trt and sm value
+                            beta_a1*(wide.df$A1-mean(wide.df$A1)) + beta_a1smb*((wide.df$A1-mean(wide.df$A1))*(wide.df$logsm_binge_last-mean(wide.df$logsm_binge_last)))) #interaction with trt and sm value
       
     } else # follow-up times
       yt.missprob = expit(alpha_m+beta_a1*(wide.df$A1-mean(wide.df$A1)) + beta_a2*(wide.df$A2-mean(wide.df$A2)) +

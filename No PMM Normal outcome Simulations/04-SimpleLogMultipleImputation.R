@@ -2,13 +2,9 @@
 # This script runs a MNAR multiple imputation that incorporates sensitivity parameters for both the TV AND the outcome
 ########################################################################################################################################
 
-
 # load libraries
 library(mice);library(dplyr)
 library(Hmisc)
-
-#Read in data to impute 'misdat'
-#load("~/Dissertation/Mbridge_SensAnal/dat4impute.rda") #only API group
 
 
 #-------------------------------------------------------------------------------------------------------------------------------------------
@@ -40,7 +36,6 @@ impute.mi<- function(mis.dat,k1=0,k2=0,m,TV=T,iter=35,nrep){
       mutate_at(vars(starts_with("hs_util")),factor)
     
     # apply(mis.dat,2,function(x) sum(is.na(x))) #see how many missing
-    
     
     ##########################################################################################################
     #Impute self-monitoring measures and tailoring outcome 

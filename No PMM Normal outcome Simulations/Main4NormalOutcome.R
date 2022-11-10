@@ -17,14 +17,14 @@ n_cores <- detectCores(logical=FALSE) #parallel nodes
 #-------------------------------------------------------------------------------
 
 simres = data.frame()
-nrep = 1
+nrep = 1000
 set.seed(1996)
 analysis = "timing"
-missTV = "MNAR"
-missY="MNAR"
-missprob= .2
+missTV = "MAR"
+missY="MAR"
+missprob=.4
 analysis_type = "CC"
-n=10000
+n=1000
 k1=0 #sensitivity parameters
 k2=0
 m=10 #number of imputation datasets
@@ -159,9 +159,20 @@ sumsim$nreps = nrep
 sumsim$zstat = sumsim$bias/(sumsim$theta.se/sqrt(sumsim$nreps)) #testing if bias is significantly different from 0
 
 #Formatting final results dataframe
-sumres = data.frame(sumsim$sim.type,sumsim$missTV,sumsim$TVmissing,sumsim$Ymissing,sumsim$theta,sumsim$theta.se,sumsim$zstat,
-                    sumsim$theta.lb,sumsim$theta.ub,
-                    sumsim$bias,sumsim$Covp,sumsim$rej.prob,sumsim$mean.HD.prop,sumsim$N,sumsim$nreps)
+sumres = data.frame(sumsim$sim.type,
+                    sumsim$missTV,
+                    sumsim$TVmissing,
+                    sumsim$Ymissing,
+                    sumsim$theta,
+                    sumsim$theta.se,
+                    sumsim$zstat,
+                    sumsim$theta.lb,
+                    sumsim$theta.ub,
+                    sumsim$bias,
+                    sumsim$Covp,
+                    sumsim$rej.prob,
+                    sumsim$mean.HD.prop,
+                    sumsim$N,sumsim$nreps)
 #sumres[c(3,4,5,6,7,8,9,10,.11,12,13)] = round(sumres[c(3,4,5,6,7,8,9,10,.11,12,13)],3)
 names(sumres) = c("Analysis","Mech",	"%TVmis","%Ymis",	"Theta-hat","SE","Zstat","Lb","Ub","Bias",
                   "CovP","Type1","%NR","N","Reps")		
