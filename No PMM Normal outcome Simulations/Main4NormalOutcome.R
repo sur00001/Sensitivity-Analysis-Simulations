@@ -1,6 +1,6 @@
 #Main function to run simulations 
 
-setwd("~/Sensitivity Analysis - Paper 1/Delta-adjusted-sensitivity-analysis")
+setwd("~/Sensitivity Analysis - Paper 1/Sensitivity-Analysis-Simulations/No PMM Normal outcome Simulations")
 source("02a-SimpleLogDataGeneration.R")
 source("03a-SimpleLogInduceMissingness.R")
 source("04-SimpleLogMultipleImputation.R")

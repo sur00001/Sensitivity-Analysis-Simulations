@@ -12,7 +12,7 @@ library(pscl)
 #Open complete data 
 load("C:/Users/lylae/OneDrive/Documents/Sensitivity Analysis - Paper 1/completedat4pred_lognormbinge.rda")
 setwd("~/Sensitivity Analysis - Paper 1/Delta-adjusted-sensitivity-analysis")
-
+   
 #Group variables into vectors 
 dems = c("female","nonwhite","greekintent")
 
