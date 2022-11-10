@@ -72,7 +72,7 @@ impute.mi<- function(mis.dat,k1=0,k2=0,m,TV=T,iter=35,nrep){
     pred[,] = 0
     
     
-    pred["sm_binge_last", c(sm.vars)] = 1
+    pred["sm_binge_last", c(sm.vars[-1])] = 1
     #pred["sm_hid_last", c(sm.vars[-2])] = 1
     
     
@@ -94,11 +94,8 @@ impute.mi<- function(mis.dat,k1=0,k2=0,m,TV=T,iter=35,nrep){
     #Update HD status and 2nd randomization
     #################################################################################################
     #Note: online coach = 1, email = -1; late=-1, early=1
-    
-    #sm.update$HD = ifelse(sm.update$sm_binge_last>1 | sm.update$sm_hid_last>0,1,0)
+
     sm.update$HD = ifelse(simdat$sm_binge_last<2,0,1)
-    
-    #sum(sm.update$HD[sm.update$misSM==1] != sm.update$HD2[sm.update$misSM==1]) #34/74 drinkers are now heavy drinkers (46%)
     
     #Updating A2 value for those missing sm_binge and who are now heavy drinkers - 1:1 randomization
     sm.update$A2[sm.update$HD==1 & sm.update$misSM==1] = ifelse(rbinom(sum(sm.update$HD==1 & sm.update$misSM==1),1,.5)==0, -1, 1)

@@ -17,13 +17,13 @@ n_cores <- detectCores(logical=FALSE) #parallel nodes
 #-------------------------------------------------------------------------------
 
 simres = data.frame()
-nrep = 1000
+nrep = 500
 set.seed(1996)
 analysis = "timing"
-missTV = "MAR"
-missY="MAR"
-missprob=.4
-analysis_type = "CC"
+missTV = "MNAR"
+missY="MNAR"
+missprob=.2
+analysis_type = "MI"
 n=1000
 k1=0 #sensitivity parameters
 k2=0
