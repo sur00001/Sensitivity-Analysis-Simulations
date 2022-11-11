@@ -65,7 +65,7 @@ gen.data <- function(N,missTV, missY,missprob,monotone.mis=0,rep.no){
     
     simdat$logsm_binge_last = induce.missYt(nperson=N,yt=simdat$logsm_binge_last,wide.df = simdat,t=.5,
                                          alpha_m= alpha_m, 
-                                         beta_y= .3,
+                                         beta_y= 4,
                                          beta_a1 = 1, beta_maxd = 0,beta_hs = 0,beta_by=0,beta_f = 0,
                                          beta_a1smb = .01,
                                          miss_type=missTV,miss_prob = missprob)
@@ -105,13 +105,13 @@ gen.data <- function(N,missTV, missY,missprob,monotone.mis=0,rep.no){
   simdat$logbinge2 = rnorm(logbinge2.mean,sigma(logbinge.mod2))
   
   
-  fulldat= simdat
+  fulldat.fu= simdat
   if(missY!="none"){
     alpha_m = logit(missprob-.02)
     
-    simdat$logbinge1 = induce.missYt(nperson=N,t=1,yt=simdat$logbinge1,wide.df=fulldat,miss_type=missY,
-                                  alpha_m= alpha_m,  beta_y= .3, beta_a1 = 1, beta_a2 = 1,
-                                  beta_maxd = 0,beta_hs = 0,beta_by=0,beta_hd = 0, beta_a1logbinge2 = .05,beta_a2logbinge2 = .05,
+    simdat$logbinge1 = induce.missYt(nperson=N,t=1,yt=simdat$logbinge1,wide.df=fulldat.fu,miss_type=missY,
+                                  alpha_m= alpha_m,  beta_y= 8, beta_a1 = 1, beta_a2 = 1,
+                                  beta_maxd = 0,beta_hs = 0,beta_by=0,beta_hd = 0, beta_a1logbinge1 = .05,beta_a2logbinge1 = .05,
                                   miss_prob= missprob)  #missprob only used for mcar 
     
      prop.table(table(is.na(simdat$logbinge1)))
@@ -128,16 +128,16 @@ gen.data <- function(N,missTV, missY,missprob,monotone.mis=0,rep.no){
     } else{ #non-monotone missingness 
       
       simdat$logbinge2 = induce.missYt(nperson=N,t=2,yt=simdat$logbinge2,wide.df=fulldat,miss_type=missY,
-                                    alpha_m= logit(missprob-.02),  beta_y= .3, beta_a1 = 1, beta_a2 = 1,
+                                    alpha_m= logit(missprob-.02),  beta_y= 4, beta_a1 = 1, beta_a2 = 1,
                                     beta_maxd = 0,beta_hs = 0,beta_by=0,beta_hd = 0,beta_a1logbinge2 = .01,beta_a2logbinge2 = .01, miss_prob=missprob) 
       
       
       simdat$hs_util1 = induce.missYt(nperson=N,t=1,simdat$hs_util1,wide.df=fulldat,miss_type=missY,
-                                      alpha_m= logit(missprob-.02),  beta_y=.3, beta_a1 = 1, beta_a2 = 1,
+                                      alpha_m= logit(missprob-.02),  beta_y=4, beta_a1 = 1, beta_a2 = 1,
                                       beta_maxd = 0,beta_hs = 0,beta_by=0,beta_hd = 0,beta_a1logbinge2 = .01,beta_a2logbinge2 = .01,miss_prob=missprob)
 
       simdat$hs_util2 = induce.missYt(nperson=N,t=2,simdat$hs_util2,wide.df=fulldat,miss_type=missY,
-                                      alpha_m= logit(missprob-.02),  beta_y= .3, beta_a1 = 1, beta_a2 = 1,
+                                      alpha_m= logit(missprob-.02),  beta_y= 4, beta_a1 = 1, beta_a2 = 1,
                                       beta_maxd = 0,beta_hs = 0,beta_by=0,beta_hd = 0,beta_a1logbinge2 = .01,beta_a2logbinge2 = .01, miss_prob=missprob)
     }
     

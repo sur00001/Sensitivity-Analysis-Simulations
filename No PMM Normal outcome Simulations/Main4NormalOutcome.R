@@ -17,14 +17,14 @@ n_cores <- detectCores(logical=FALSE) #parallel nodes
 #-------------------------------------------------------------------------------
 
 simres = data.frame()
-nrep = 500
+nrep = 1000
 set.seed(1996)
 analysis = "timing"
 missTV = "MNAR"
 missY="MNAR"
 missprob=.2
-analysis_type = "MI"
-n=1000
+analysis_type = "CC"
+n=10000
 k1=0 #sensitivity parameters
 k2=0
 m=10 #number of imputation datasets
@@ -115,7 +115,8 @@ if (analysis=="timing"){
   simres$rej = ifelse(simres$A1.pval<.05,1,0)
   sumsim = simres %>% summarise(theta = mean(A1.beta),theta.se = sd(A1.beta),theta.lb = theta -1.96*theta.se,
                                 theta.ub = theta + 1.96*theta.se,bias = theta-0,Covp = mean(covp),rej.prob = mean(rej),
-                                mean.HD.prop = mean(HD.prop),TVmissing = mean(miss.rateTV,na.rm=TRUE), Ymissing = mean(miss.rateY,na.rm=TRUE))
+                                mean.HD.prop = mean(HD.prop),TVmissing = mean(miss.rateTV,na.rm=TRUE), 
+                                Ymissing = mean(miss.rateY,na.rm=TRUE))
   #sumsim=round(sumsim,3)
 }
 
