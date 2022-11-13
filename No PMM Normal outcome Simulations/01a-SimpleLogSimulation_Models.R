@@ -53,7 +53,6 @@ hs.mod <- glm(hs.form,data=cdat,family="binomial"); summary(hs.mod)
 #Binge0
 logbinge.form <- as.formula(paste0("logbinge0~",paste(c("nonwhite",
                                                   "female","greekintent","hs_util0"),collapse="+")))
-
 logbinge.mod = lm(logbinge.form,data=cdat); summary(logbinge.mod)
 
 
@@ -68,7 +67,6 @@ logsmbinge.mod$coefficients[7] = 0
 
 
 cdat$logHD = ifelse(cdat$logsm_binge_last<log(3) | is.na(cdat$logsm_binge_last), 0,1)
-
 
 ########################### Follow-up 1 outcomes ##########################################
 
