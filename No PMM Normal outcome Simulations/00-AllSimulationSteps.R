@@ -20,7 +20,7 @@ dems = c("female","nonwhite","greekintent")
 
 # Null regime means estimated from monte carlo integration 
 # using mbridge simulation models where I changed the treatment effect coefficients to be 0
-load("~/Sensitivity Analysis - Paper 1/Delta-adjusted-sensitivity-analysis/nulltruth.res.rda")
+#load("~/Sensitivity Analysis - Paper 1/Delta-adjusted-sensitivity-analysis/nulltruth.res.rda")
 
 # Expit Function 
 expit=function(x){
