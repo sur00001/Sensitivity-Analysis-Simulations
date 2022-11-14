@@ -10,6 +10,17 @@
 #Libraries 
 library(dplyr); library(truncnorm)
 library(MASS);library(AER); library(pscl)
+library(mice);library(dplyr)
+library(Hmisc)
+library(geepack)
+library(emmeans)
+library(ggplot2)
+library(readxl)
+library(kableExtra)
+library(tidyverse)
+library(RColorBrewer)
+library(grid);library(gtable)
+
 
 setwd("~/Sensitivity Analysis - Paper 1/Sensitivity-Analysis-Simulations/No PMM Normal outcome Simulations")
 
@@ -43,7 +54,8 @@ analysis_type = "CC"   # multiple imputation or complete case analysis
 n=1000                 # sample size 
 m=10                   # Number of imputation datasets
 truth = truemeans.null # "truemeans.null" are the "true" regime means estimated from Monte Carlo integration
-
+k1 = 0                 # Sensitivity parameter for A=1 group
+k2 = 0                 # Sensitivity parameter for A=-1 group
 #-------------------------------------------------------------------------------
 # PARAMETERS IN LOGIT MODEL TO INDUCE MISSINGNESS 
 #-------------------------------------------------------------------------------
@@ -137,8 +149,6 @@ hs.mod2$coefficients[c(7,9)]=0
 #logbinge2
 #NOTE: #logbinge 1 and 2 are correlated in the empirical data, yet when I generate the data there is almost 0 correlation (model R2 is near 0)
 
-
-#Original model 
 #logbinge.form2 <- as.formula(paste0("logbinge2~",paste(c("logbinge1","logbinge0",dems,"A1","logHD","A2","hs_util2"),collapse="+"))) #original model
 logbinge.form2 <- as.formula(paste0("logbinge2~",paste(c("logbinge1",dems,"A1","logHD","A2","hs_util2"),collapse="+")))
 logbinge.mod2 <- lm(logbinge.form2,data=cdat); summary(logbinge.mod2) #getting an idea of how correlated logbinge1 and logbinge2 are 
@@ -151,7 +161,7 @@ logbinge.mod2$coefficients[c(7,9)]=0
 #for (rep in 1:nrep){
 
 #-----------------------------
-# Generate data  
+# GENERATE DATA
 #-----------------------------
 # Simulating data using models estimated above
   
@@ -309,12 +319,204 @@ logbinge.mod2$coefficients[c(7,9)]=0
   hist(fulldata$logbinge1); hist(obsdata$logbinge1,na.rm=TRUE)
   t.test(fulldata$logbinge1~is.na(obsdata$logbinge1)) #note that no. of non-responders, trt2 will be different for people in fulldata vs obsdata
   t.test(fulldata$logbinge2~is.na(obsdata$logbinge2))
-  
 
   t.test(fulldata$hs_util1~is.na(obsdata$hs_util1)) #note that no. of non-responders, trt2 will be different for people in fulldata vs obsdata
   t.test(fulldata$hs_util2~is.na(obsdata$hs_util2))
-
   #MNAR missing and full distribution of outcomes are the same...
+  
+  if(analysis_type=="CC"){dat4analysis = obs.data} #obs data will be analyzed for complete case analysis
 
+  #-----------------------------
+  # MULTIPLE IMPUTATION - Impute data if analysis_type = "MI"
+  #-----------------------------
+  
+  if(analysis_type=="MI"){
+    
+    mis.dat = obsdata 
+    iter = 35 #iterations in mice() function 
+    imp_long = c()
+    for (i in 1:m){
+      print(paste("     Imputation:",i))
+      
+      #name variables 
+      dems = c("female","nonwhite","greekintent")
+      base.outs = c("logbinge0","hs_util0")
+      yr1.outs = c("logbinge1","hs_util1")
+      yr2.outs = c("logbinge2","hs_util2")
+      
+      # code binary variables as factors
+      mis.dat = mis.dat %>% 
+        mutate_at(vars(starts_with("hs_util")),factor)
+      
+      ##########################################################################################################
+      #Impute self-monitoring measures and tailoring outcome 
+      ##########################################################################################################
+      
+      #Add missingness indicators for SM, FU1 and FU2 - needed for sensitivity analysis
+      mis.dat$misSM <- ifelse(is.na(mis.dat$logsm_binge_last),1,0)
+      mis.dat$misb1 <- ifelse(is.na(mis.dat$logbinge1),1,0) #FU1 logbinge 
+      mis.dat$misb2 <- ifelse(is.na(mis.dat$logbinge2),1,0)
+      
+      #Creating predictor matrix
+      sm.vars <- c("logsm_binge_last", dems,"logbinge0",'hs_util0',"A1")
+      
+      #Index of variables for sm imputation
+      sm.i = which(names(mis.dat) %in% sm.vars)
+      
+      # shell imputation
+      imp = mice(mis.dat[,sm.i],maxit=0)
+      imp$method[7]="norm"
+      # imp$loggedEvents
+    
+      # make predictor matrix
+      pred = imp$predictorMatrix
+      pred[,] = 0
+      pred["logsm_binge_last", c(sm.vars[-1])] = 1
+      
+      #Imputation for tailoring variable 
+      smimp = mice(mis.dat[,c(sm.i)],m=1,method = imp$method,predictorMatrix = pred,maxit=iter,printFlag = FALSE)
+      sm.imp <- complete(smimp)
+      
+      #New dataset with imputed self-monitoring variables
+      datnosm <- mis.dat %>% dplyr::select(names(mis.dat)[names(mis.dat) %nin% names(sm.imp)])
+      sm.update <- cbind(sm.imp,datnosm)
+      
+      #Add sensitivity parameter to self-monitoring measure 
+      sm.update$logsm_binge_last[sm.update$A1==-1] = sm.update$logsm_binge_last[sm.update$A1==-1] + sm.update$misSM[sm.update$A1==-1]*(k1/2) #group 1 late 
+      sm.update$logsm_binge_last[sm.update$A1==1] = sm.update$logsm_binge_last[sm.update$A1==1] + sm.update$misSM[sm.update$A1==1]*(k2/2) #group 2 early 
 
+      #################################################################################################
+      #Update HD status and 2nd randomization
+      #################################################################################################
+      #Note: online coach = 1, email = -1; late=-1, early=1
+    
+      sm.update$logHD = ifelse(sm.update$logsm_binge_last< log(3),0,1)
+      
+      #sum(sm.update$HD[sm.update$misSM==1] != sm.update$HD2[sm.update$misSM==1]) #34/74 drinkers are now heavy drinkers (46%)
+    
+      sm.update$A2 = 0 
+      sm.update$A2[which(sm.update$logHD==1)] = ifelse(rbinom(sum(sm.update$logHD==1),1,.5)==1, 1, -1)
+      prop.table(table(sm.update$A2))
+      
+      sm.update$trajnochange = ifelse(sm.update$misSM==1 & sm.update$logHD==1,0,1) #if missing (light drinker) but after imputation they are a HD, then trt trajectory changed
+      
+      ####################################################################################################
+      # Follow-up 1 outcome imputation and update data with sensitivity parameter
+      ####################################################################################################
+      
+      #Induce structural missingness: make FU1 outcomes missing if trt trajectory changed 
+      sm.update[sm.update$trajnochange==0,names(sm.update) %in% yr1.outs] = NA
+      sm.update[sm.update$trajnochange==0,names(sm.update) %in% yr2.outs] = NA
+      
+      #Using the MICE chained equations to impute all follow-up outcomes at once, so we can incorporate follow-up 2 information if available for people who didn't have their trajectory change
+      
+      #Creating predictor matrix
+      FU.vars <- c(base.outs,yr1.outs, yr2.outs, dems,
+                   "A1","A2",
+                   "logHD")
+      
+      
+      #Index of variables for FU imputation
+      FU.i = which(names(sm.update) %in% FU.vars)
+      
+      # shell imputation
+      imp = mice(sm.update[,FU.i],maxit=0,printFlag = FALSE)
+      #  imp$loggedEvents
+      
+      # look at method
+      #Change pmm to norm
+      imp$method[c(7,8)]="norm"
+      meth=imp$method
+      
+      # make predictor matrix
+      pred = imp$predictorMatrix
+      pred[,] = 0
 
+      # Follow-up outcomes - using same exact models as the data generation models 
+      pred["logbinge1",c("logbinge0",dems,
+                         "A1","logHD","A2","hs_util1")] = 1
+      
+      pred["logbinge2",c("logbinge1",dems,"A1","logHD","A2","hs_util2")] = 1
+      
+      pred["hs_util1",c('hs_util0',dems,
+                        "A1","logHD","A2","logbinge0")] = 1
+      
+      pred["hs_util2",c("hs_util1", dems,
+                        "A1","logHD","A2","logbinge1")] = 1
+      #logbinge2
+      #NOTE: #logbinge 1 and 2 are correlated in the empirical data, yet when I generate the data there is almost 0 correlation (model R2 is near 0)
+      
+      #Impute data
+      fuimp = mice(sm.update[,FU.i],m=1,method = meth,predictorMatrix = pred,maxit=30,printFlag = FALSE)
+      fu.imp = complete(fuimp)
+      
+      #New dataset with imputed follow-up variables
+      datnofu <- sm.update[,-FU.i]
+      fu.update <- cbind(fu.imp,datnofu)
+      
+      #Add sensitivity parameter to follow-up 1
+      fu.update$logbinge1[fu.update$A1==-1] = fu.update$logbinge1[fu.update$A1==-1] + fu.update$misb1[fu.update$A1==-1]*k1 #late 
+      fu.update$logbinge1[fu.update$A1==1] = fu.update$logbinge1[fu.update$A1==1] + fu.update$misb1[fu.update$A1==1]*k2 #early 
+      
+      #Add sensitivity parameter to follow-up 2
+      fu.update$logbinge2[fu.update$A1==-1] = fu.update$logbinge2[fu.update$A1==-1] + fu.update$misb2[fu.update$A1==-1]*k1 #late 
+      fu.update$logbinge2[fu.update$A1==1] = fu.update$logbinge2[fu.update$A1==1] + fu.update$misb2[fu.update$A1==1]*k2 #early 
+      
+      #Add this imputed dataset to a long dataset of all m imputated datasets
+      dat=fu.update
+      dat$.imp = rep(i,dim(fu.update)[1]) #want length of imputed data
+      imp_long = rbind(imp_long,dat)
+    } 
+    
+    dat4analysis = imp_long
+  }
+
+  timing.comp= function(dat, analysis_type, missing.dat){
+    
+    if (analysis_type =="CC"){ #dat is observed data
+      time1.mod = lm(logbinge1~A1,data=obsdata)
+      time1.res= summary(time1.mod)
+      
+      #Saving results for the rep
+      res= data.frame(A1.beta = time1.res$coefficients[2,1],A1.lb =confint(time1.mod)[2,1],
+                      A1.ub = confint(time1.mod)[2,2],A1.se = time1.res$coefficients[2,2],
+                      A1.pval = time1.res$coefficients[2,4])
+      res$HD.prop = prop.table(table(obsdata$logHD))[2]
+    } 
+    else { #MI analysis - dat is the "imp" mice object 
+      fit = lapply(1:max(imp_long$.imp),function(x){lm(logbinge1~A1,data=imp_long[imp_long$.imp==x,])})
+      time1.res = summary(pool(fit))
+      res= data.frame(A1.beta = time1.res$estimate[2],A1.lb = time1.res$estimate[2] - 1.96*time1.res$std.error[2],
+                      A1.ub = time1.res$estimate[2] + 1.96*time1.res$std.error[2],A1.se = time1.res$std.error[2],
+                      A1.pval = time1.res$p.value[2])
+      res$HD.prop = prop.table(table(imp_long$logHD))[2]
+    }
+    
+    res$miss.rateTV = prop.table(table(is.na(obsdata$logsm_binge_last)))[2] #missingness rate of TV
+    res$miss.rateY = prop.table(table(is.na(obsdata$logbinge1)))[2] #missingness rate of binge1 (outcome)
+
+  }
+  
+ 
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
