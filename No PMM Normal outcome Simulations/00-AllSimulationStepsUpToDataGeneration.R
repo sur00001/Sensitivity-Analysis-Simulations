@@ -39,9 +39,9 @@ missTV = "MNAR"        # missingness mechanism for tailoring variable
 missY="MNAR"           # missingness mechanism for Y
 missprob=.2            # probability of induced missingness in TV, Y1 and Y2\
 analysis_type = "CC"   # multiple imputation or complete case analysis
-n=1000                 # sample size 
+N = 1000                 # sample size 
 m=10                   # Number of imputation datasets
-truth = truemeans.null # "truemeans.null" are the "true" regime means estimated from Monte Carlo integration
+#truth = truemeans.null # "truemeans.null" are the "true" regime means estimated from Monte Carlo integration
 
 #-------------------------------------------------------------------------------
 # PARAMETERS IN LOGIT MODEL TO INDUCE MISSINGNESS 
@@ -57,6 +57,7 @@ beta_y = 16 #effect of outcome at follow-up 1 and 2
 beta_hd = 1 #effect of being a heavy drinker
 beta_a1logbinge = 4 #effect of interaction betw stage1 trt and follow-up outcome 1 or 2
 beta_a2logbinge = 4 #effect of interaction betw stage2 trt and follow-up outcome 1 or 2
+beta_a1smb = 1
 
 
 #-------------------------------------------------------------------------------
@@ -313,7 +314,6 @@ logbinge.mod2$coefficients[c(7,9)]=0
   t.test(fulldata$hs_util1~is.na(obsdata$hs_util1)) #note that no. of non-responders, trt2 will be different for people in fulldata vs obsdata
   t.test(fulldata$hs_util2~is.na(obsdata$hs_util2))
 
-  #MNAR missing and full distribution of outcomes are the same...
 
 
 
